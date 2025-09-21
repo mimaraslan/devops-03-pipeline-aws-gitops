@@ -7,7 +7,7 @@ pipeline {
     //agent any
  
     environment {
-        APP_NAME = "devops-03-pipeline-aws-gitops"
+        APP_NAME = "devops-03-pipeline-aws"
     }
 
 
@@ -37,15 +37,11 @@ pipeline {
                 
                 sh """
                    cat deployment.yaml
-
-                   sed -i 's/${APP_NAME}.*/${APP_NAME}:${IMAGE_TAG}/g'           deployment.yaml
-               
+                   sed -i 's/${APP_NAME}.*/${APP_NAME}:${IMAGE_TAG}/g' deployment.yaml
                    cat deployment.yaml
                 """
             }
         }
-
-
 
 
         stage("Push the changed deployment file to Git") {
@@ -61,10 +57,6 @@ pipeline {
                 }
             }
         }
-
-
-
-
 
 
 
