@@ -32,31 +32,55 @@ pipeline {
 
       
 
-       stage("Update the Deployment Tags") {
-            steps {
-                
-                sh """
-                   cat deployment.yaml
-                   sed -i 's/${APP_NAME}.*/${APP_NAME}:${IMAGE_TAG}/g' deployment.yaml
-                   cat deployment.yaml
-                """
-            }
-        }
+      
+stage("Update the Deployment Tags") {
+    steps {
+        sh """
+           echo "Before update:"
+           cat deployment.yaml
+
+           sed -i "s|\\(image: *mimaraslan/devops-03-pipeline-aws:\\).*|\\1${IMAGE_TAG}|" deployment.yaml
+
+           echo "After update:"
+           cat deployment.yaml
+        """
+    }
+}
 
 
-        stage("Push the changed deployment file to Git") {
-            steps {
-                sh """
-                   git config --global user.name "mimaraslan"
-                   git config --global user.email "mimaraslan@gmail.com"
-                   git add deployment.yaml
-                   git commit -m "Updated Deployment Manifest"
-                """
-                withCredentials([gitUsernamePassword(credentialsId: 'github', gitToolName: 'Default')]) {
-                  sh "git push https://github.com/mimaraslan/devops-03-pipeline-aws-gitops master"
-                }
-            }
-        }
+stage("Push the changed deployment file to Git") {
+  steps {
+    withCredentials([usernamePassword(
+      credentialsId: 'github',             // Jenkins'teki ID (büyük/küçük harfe dikkat)
+      usernameVariable: 'GIT_USER',
+      passwordVariable: 'GIT_TOKEN'
+    )]) {
+      sh '''#!/usr/bin/env bash
+                set -euo pipefail
+
+                git config user.name  "mimaraslan"
+                git config user.email "mimaraslan@gmail.com"
+
+# (opsiyonel) detached HEAD ise branch'e geç
+                git checkout -B master origin/master || true
+
+                git add deployment.yaml || true
+
+# değişiklik yoksa fail etme
+                if git diff --cached --quiet; then
+                    echo "No changes to commit."
+                exit 0
+                fi
+
+                git commit -m "Updated Deployment Manifest"
+
+# Token'ı URL'de kullan; Jenkins maskeler
+                git push "https://${GIT_USER}:${GIT_TOKEN}@github.com/mimaraslan/devops-03-pipeline-aws-gitops" HEAD:master
+'''
+    }
+  }
+}
+
 
 
     }
