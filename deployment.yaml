@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: devops-03-pipeline-cd
-          image: mimaraslan/devops-03-pipeline-aws:1.0.33
+          image: mimaraslan/devops-03-pipeline-aws:1.0.34
           resources:
             limits:
               memory: "256Mi"
